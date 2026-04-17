@@ -218,7 +218,7 @@
 <body>
   <h1>Prompter Slides - Doctor Prats</h1>
   <div class="toolbar">
-    <button class="btn-add-song" onclick="addSong()">+ Afegir canco</button>
+    <button class="btn-add-song" onclick="addSong()">+ Afegir cançó</button>
     <button class="btn-save" onclick="saveAll()">Desar</button>
     <button class="btn-save" onclick="loadAll()">Carregar</button>
   </div>
@@ -364,10 +364,10 @@
       const header = document.createElement('div');
       header.className = 'song-header';
       header.innerHTML = `
-        <input class="song-title" type="text" value="${escapeHtml(title)}" placeholder="Nom de la canco...">
+        <input class="song-title" type="text" value="${escapeHtml(title)}" placeholder="Nom de la cançó...">
         <div class="song-actions">
           <button onclick="addSlideToSong(this)" title="Afegir frase">+ frase</button>
-          <button onclick="deleteSong(this)" title="Eliminar canco">Eliminar</button>
+          <button onclick="deleteSong(this)" title="Eliminar cançó">Eliminar</button>
         </div>
       `;
       songDiv.appendChild(header);
@@ -433,7 +433,7 @@
     }
 
     function deleteSong(btn) {
-      if (!confirm('Eliminar aquesta canco?')) return;
+      if (!confirm('Eliminar aquesta cançó?')) return;
       btn.closest('.song').remove();
       updateNav();
     }
