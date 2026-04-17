@@ -228,6 +228,7 @@
 
   <script>
     const songsContainer = document.getElementById('songs');
+    let songCounter = 0;
 
     const initialData = [
       {
@@ -359,7 +360,7 @@
     function addSong(title = '', slides = ['']) {
       const songDiv = document.createElement('div');
       songDiv.className = 'song';
-      songDiv.id = 'song-' + Date.now();
+      songDiv.id = 'song-' + (++songCounter);
 
       const header = document.createElement('div');
       header.className = 'song-header';
@@ -450,8 +451,12 @@
       document.querySelectorAll('.song').forEach(song => {
         const title = song.querySelector('.song-title').value || '???';
         const a = document.createElement('a');
-        a.href = '#' + song.id;
+        a.href = '#';
         a.textContent = title;
+        a.addEventListener('click', (e) => {
+          e.preventDefault();
+          song.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
         nav.appendChild(a);
       });
     }
