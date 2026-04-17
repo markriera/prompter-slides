@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompter Slides - Doctor Prats</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 1.5rem;
+      color: #e94560;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      background: #1a1a2e;
+      padding: 10px 0;
+      z-index: 50;
+    }
+    .toolbar button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .btn-add {
+      background: #e94560;
+      color: white;
+    }
+    .btn-add:hover { background: #c73650; }
+    .btn-save {
+      background: #16213e;
+      color: #7ec8e3;
+      border: 1px solid #7ec8e3;
+    }
+    .btn-save:hover { background: #1a2a4a; }
+    .btn-add-song {
+      background: #0f3460;
+      color: white;
+    }
+    .btn-add-song:hover { background: #1a4a7a; }
+
+    #songs {
+      max-width: 750px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    .song {
+      background: #0f1a30;
+      border-radius: 12px;
+      padding: 16px;
+      border-left: 4px solid #e94560;
+    }
+    .song-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .song-title {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e94560;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .song-title::placeholder { color: #5a2030; }
+    .song-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background 0.2s;
+      color: #888;
+    }
+    .song-actions button:hover { background: rgba(255,255,255,0.08); color: #ccc; }
+    .song-actions { display: flex; gap: 4px; }
+    .slides {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .slide {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: #16213e;
+      border-radius: 8px;
+      padding: 8px 12px;
+      transition: background 0.2s;
+    }
+    .slide:hover { background: #1a2a4a; }
+    .slide-number {
+      color: #e94560;
+      font-weight: 700;
+      font-size: 0.8rem;
+      min-width: 24px;
+      text-align: center;
+      user-select: none;
+    }
+    .slide input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #eee;
+      font-size: 0.95rem;
+      padding: 6px 0;
+    }
+    .slide input::placeholder { color: #555; }
+    .slide-actions {
+      display: flex;
+      gap: 4px;
+    }
+    .slide-actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: background 0.2s;
+      line-height: 1;
+    }
+    .btn-copy-one { color: #7ec8e3; }
+    .btn-copy-one:hover { background: rgba(126,200,227,0.15); }
+    .btn-copy-one.copied { color: #4caf50; }
+    .btn-delete { color: #e94560; font-size: 0.85rem; }
+    .btn-delete:hover { background: rgba(233,69,96,0.15); }
+    .btn-add-slide {
+      background: none;
+      border: 1px dashed #333;
+      color: #555;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      margin-top: 4px;
+      transition: all 0.2s;
+    }
+    .btn-add-slide:hover { border-color: #7ec8e3; color: #7ec8e3; }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #4caf50;
+      color: white;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      opacity: 0;
+      transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Nav lateral */
+    .song-nav {
+      position: fixed;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      z-index: 50;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .song-nav a {
+      color: #7ec8e3;
+      text-decoration: none;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      transition: background 0.2s;
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .song-nav a:hover { background: rgba(126,200,227,0.15); }
+  </style>
+</head>
+<body>
+  <h1>Prompter Slides - Doctor Prats</h1>
+  <div class="toolbar">
+    <button class="btn-add-song" onclick="addSong()">+ Afegir canco</button>
+    <button class="btn-save" onclick="saveAll()">Desar</button>
+    <button class="btn-save" onclick="loadAll()">Carregar</button>
+  </div>
+  <div id="songs"></div>
+  <div class="song-nav" id="nav"></div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const songsContainer = document.getElementById('songs');
+
+    const initialData = [
+      {
+        title: "EXTRA NORMAL",
+        slides: [
+          "Bona nit XXX! Aixo vostre no es normal",
+          "ARA!",
+          "Mans amunt!!"
+        ]
+      },
+      {
+        title: "AEROBIC",
+        slides: [
+          "Que passa XXX! Aixo es diu Aerobic. Perque pel que sembla avui seure no es una opcio"
+        ]
+      },
+      {
+        title: "MIRA-LA",
+        slides: [
+          "Una mica de rumbeta bona!"
+        ]
+      },
+      {
+        title: "A BRINDAR",
+        slides: [
+          "XXX x vegades aqui \u2014 i cada cop som mes. Impressionant, familia.\nSom Doctor Prats, venim des de Terrassa\u2026",
+          "I aquesta nit no hem vingut a fer un concert qualsevol\u2026 hem vingut a muntar un FESTRIBAL.",
+          "Pero primer \u2014 una cosa important.\nAixequeu el got, l\u2019ampolla, o el que tingueu, perque una bona festa, sempre es comenca brindant!"
+        ]
+      },
+      {
+        title: "L\u2019UNIC QUE VULL ES CANTAR",
+        slides: [
+          "Welcome to paradise"
+        ]
+      },
+      {
+        title: "CREUANT TEMPESTES",
+        slides: [
+          "Aquesta va per les valentes i valents que s\u2019atreveixen a viure, potser estarem mes xops pero segur que estem mes vius!!"
+        ]
+      },
+      {
+        title: "EFECTE PAPALLONA",
+        slides: [
+          "Joan Pala!!!"
+        ]
+      },
+      {
+        title: "GIRASOLS",
+        slides: [
+          "Familia, Us volem sempre aixi, de cara a la llum, sense demanar permis a ningu.",
+          "Sense abaixar els ulls mai. Com els gira-sols."
+        ]
+      },
+      {
+        title: "A POC A POC",
+        slides: [
+          "A poc a poc, us volem sentir mes a prop!"
+        ]
+      },
+      {
+        title: "NO T\u2019ENCANTIS",
+        slides: [
+          "Ja ha arribat la cuuuuuuuuumbiaaaaa.",
+          "Hi ha algu que tingui calor. Jo crec que avui tambe\u2026 ens haurem de descordar LA CAMISAAAAA!"
+        ]
+      },
+      {
+        title: "ROCKAMBOLESKA",
+        slides: [
+          "Aquest any hem renovat directe i estem recuperant cancons antigues\u2026 i no podia faltar una canco del nostre primer disc\u2026 ens l\u2019heu demanat molt\u2026 a veure si la coneixeu!"
+        ]
+      },
+      {
+        title: "TU FAS",
+        slides: [
+          "Com teniu la veu? Encara us en queda?? si?? va doncs, que aquesta la coneixeu segur!!"
+        ]
+      },
+      {
+        title: "MORIAGATTE!",
+        slides: [
+          "Ara una canco que vem gravar a japo amb les Oreska Band, es diu Moriagatte, que vol dir a donar-ho tot. Us volem a tope Barcelona!"
+        ]
+      },
+      {
+        title: "EL RAIM",
+        slides: [
+          "Ara i sempre: la revolucio no es fa nomes amb esperanca!"
+        ]
+      },
+      {
+        title: "CAMINEM LLUNY",
+        slides: [
+          "Les millors cancons sempre arriben quan no les estas buscant.",
+          "Fa anys que ens passa. Cinc discos. Mes de cinc-cents concerts. Paisos que mai hauriem imaginat trepitjar.",
+          "I cada vegada es el mateix miracle \u2014 escrius alguna cosa en un paper, i de cop aquella cosa deixa de ser teva.",
+          "Nosaltres ho hem viscut cinc-centes vegades. I cada vegada ens torna a sorprendre.\nAvui es vostra."
+        ]
+      },
+      {
+        title: "AL FINAL TOT ANIRA BE",
+        slides: [
+          "XXX. Aixo es va acabant.\nFeia temps que no tocavem aquesta canco, i hem decidit recuperar-la",
+          "A vegades la vida no et porta alla on volies. Segur que mes d\u2019un i d\u2019una esta passant per un moment dificil.",
+          "Pero volem que sapigues una cosa: no estas sol. No estas sola.\nSi estem junts, tot sera mes facil.",
+          "Aixequeu els mobils, els encenedors, el que tingueu. Fem que aquesta nit es converteixi en un mar d\u2019estrelles.",
+          "Perque al final\u2026 tot anira be"
+        ]
+      },
+      {
+        title: "INTRO LES NITS",
+        slides: [
+          "Ara si, anem marxant XXX Abans pero ens agradaria donar les gracies a totes les persones de la organitzacio que fan possible tot aixo, merci per convidar-nos i per muntar aquest FESTRIBAL.",
+          "I un aplaudiment encara mes fort pel millor equip tecnic que podriem tenir i que fa possible tot aixo: Aleix, Jou, Karlitos, Maymi, Perma, Alax, Artur, Miquel a la botiga, aneu-lo a veure!",
+          "I avui i sempre\u2026 ho celebrem amb aquesta familia. Amb els Doctors.          VICTOR, URI, JOAN, MARIA, JOSEP, RAMON, MIKI (MARKI)",
+          "Pero sobretot\u2026 gracies a vosaltres. Als que hi sou sempre. Als que veniu de prop i als que feu quilometres nomes per ser aqui. Als que ompliu places, carrers i festivals\u2026 Donant suport a la musica feta a casa nostra, a la musica feta EN CATALA",
+          "Perque una llengua no es nomes paraules. Es cultura. Es identitat. Es la manera com estimem, com riem, com ens expliquem el mon. I si no la cuidem\u2026 si no la fem nostra\u2026 un dia potser ja no la podrem cantar.",
+          "Merciii perque amb vosaltres avui tornara a ser una d\u2019aquelles nits, que no moren mai!"
+        ]
+      }
+    ];
+
+    function escapeHtml(str) {
+      return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    function addSong(title = '', slides = ['']) {
+      const songDiv = document.createElement('div');
+      songDiv.className = 'song';
+      songDiv.id = 'song-' + Date.now();
+
+      const header = document.createElement('div');
+      header.className = 'song-header';
+      header.innerHTML = `
+        <input class="song-title" type="text" value="${escapeHtml(title)}" placeholder="Nom de la canco...">
+        <div class="song-actions">
+          <button onclick="addSlideToSong(this)" title="Afegir frase">+ frase</button>
+          <button onclick="deleteSong(this)" title="Eliminar canco">Eliminar</button>
+        </div>
+      `;
+      songDiv.appendChild(header);
+
+      const slidesDiv = document.createElement('div');
+      slidesDiv.className = 'slides';
+      songDiv.appendChild(slidesDiv);
+
+      songsContainer.appendChild(songDiv);
+
+      slides.forEach(s => addSlide(slidesDiv, s));
+      updateNav();
+      return songDiv;
+    }
+
+    function addSlide(slidesDiv, text = '') {
+      const div = document.createElement('div');
+      div.className = 'slide';
+      const num = slidesDiv.children.length + 1;
+      div.innerHTML = `
+        <span class="slide-number">${num}</span>
+        <input type="text" value="${escapeHtml(text)}" placeholder="Escriu la frase aqui...">
+        <div class="slide-actions">
+          <button class="btn-copy-one" onclick="copyOne(this)" title="Copiar">📋</button>
+          <button class="btn-delete" onclick="deleteSlide(this)" title="Eliminar">\u2715</button>
+        </div>
+      `;
+      slidesDiv.appendChild(div);
+      const input = div.querySelector('input');
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          addSlide(slidesDiv);
+          slidesDiv.lastChild.querySelector('input').focus();
+        }
+      });
+      renumber(slidesDiv);
+    }
+
+    function addSlideToSong(btn) {
+      const slidesDiv = btn.closest('.song').querySelector('.slides');
+      addSlide(slidesDiv);
+      slidesDiv.lastChild.querySelector('input').focus();
+    }
+
+    function copyOne(btn) {
+      const input = btn.closest('.slide').querySelector('input');
+      navigator.clipboard.writeText(input.value).then(() => {
+        btn.classList.add('copied');
+        btn.textContent = '\u2713';
+        showToast('Copiat!');
+        setTimeout(() => {
+          btn.classList.remove('copied');
+          btn.textContent = '📋';
+        }, 1200);
+      });
+    }
+
+    function deleteSlide(btn) {
+      const slidesDiv = btn.closest('.slides');
+      btn.closest('.slide').remove();
+      renumber(slidesDiv);
+    }
+
+    function deleteSong(btn) {
+      if (!confirm('Eliminar aquesta canco?')) return;
+      btn.closest('.song').remove();
+      updateNav();
+    }
+
+    function renumber(slidesDiv) {
+      slidesDiv.querySelectorAll('.slide').forEach((s, i) => {
+        s.querySelector('.slide-number').textContent = i + 1;
+      });
+    }
+
+    function updateNav() {
+      const nav = document.getElementById('nav');
+      nav.innerHTML = '';
+      document.querySelectorAll('.song').forEach(song => {
+        const title = song.querySelector('.song-title').value || '???';
+        const a = document.createElement('a');
+        a.href = '#' + song.id;
+        a.textContent = title;
+        nav.appendChild(a);
+      });
+    }
+
+    function getData() {
+      return [...document.querySelectorAll('.song')].map(song => ({
+        title: song.querySelector('.song-title').value,
+        slides: [...song.querySelectorAll('.slide input')].map(i => i.value)
+      }));
+    }
+
+    function saveAll() {
+      localStorage.setItem('prompter-dr-prats', JSON.stringify(getData()));
+      showToast('Desat!');
+    }
+
+    function loadAll() {
+      const data = JSON.parse(localStorage.getItem('prompter-dr-prats') || '[]');
+      if (!data.length) return showToast('No hi ha res desat');
+      songsContainer.innerHTML = '';
+      data.forEach(s => addSong(s.title, s.slides));
+      showToast('Carregat!');
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    // Observar canvis als titols per actualitzar nav
+    songsContainer.addEventListener('input', (e) => {
+      if (e.target.classList.contains('song-title')) updateNav();
+    });
+
+    // Carregar dades desades o inicials
+    const saved = localStorage.getItem('prompter-dr-prats');
+    if (saved) {
+      JSON.parse(saved).forEach(s => addSong(s.title, s.slides));
+    } else {
+      initialData.forEach(s => addSong(s.title, s.slides));
+    }
+  </script>
+</body>
+</html>
